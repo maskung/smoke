@@ -14,7 +14,10 @@
 #define  BUZZER    1
 #define  ALGOHOL    4
 
+#define LINE_BUFSIZE 1024
+
 void siren(void);
+int send_line(void);
 
 // main funcion
 int main(void)
@@ -38,11 +41,15 @@ int main(void)
 
         sensordetect = digitalRead(ALGOHOL);
 
-        printf("sensor status : %d\n",sensordetect);
+        //printf("sensor status : %d\n",sensordetect);
+        printf("OK!!!\n");
 
         //echo siren and show bliking led if sensor has detected ( 0 means senser has detected)
         if (sensordetect == 0) {
+            printf("hey!!! there are stududent smoking!!!\n");
             siren();
+            send_line();
+            
         }
             
 	}
@@ -72,5 +79,30 @@ void siren(void) {
         digitalWrite (BUZZER, LOW) ;// do not send voice
         delay (2) ;// delay 2ms
     }
+}
+
+int send_line(void) {
+    char line[LINE_BUFSIZE];
+    int linenr;
+    FILE *pipe;
+            
+    /* Get a pipe where the output from the scripts comes in */
+    pipe = popen("./sendline.sh", "r");
+    if (pipe == NULL) {  /* check for errors */
+        //perror(argv[0]); /* report error message */
+        return 1;        /* return with exit code indicating error */
+                                            }
+
+    /* Read script output from the pipe line by line */
+    linenr = 1;
+    while (fgets(line, LINE_BUFSIZE, pipe) != NULL) {
+        printf("Script output line %d: %s", linenr, line);
+        ++linenr;
+                                }
+                                
+        /* Once here, out of the loop, the script has ended. */
+    pclose(pipe); /* Close the pipe */
+    return 0;     /* return with exit code indicating success. */
+
 }
 
